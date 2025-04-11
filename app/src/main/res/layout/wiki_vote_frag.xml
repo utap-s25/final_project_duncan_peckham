@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="WikiVote"
+        android:textSize="24sp"
+        android:textStyle="bold"
+        android:padding="8dp"
+        android:id="@+id/pageTitle"
+        android:layout_gravity="center"
+        />
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/articleTitle1"
+        android:text="Boston"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        android:layout_gravity="center"/>
+    <ImageView
+        android:layout_width="wrap_content"
+        android:layout_height="150dp"
+        android:id="@+id/articleImage1"
+        />
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/articleDescription1"
+        android:text="Boston[a] is the capital and most populous city in the Commonwealth of Massachusetts in the United States...."
+        android:paddingVertical="8dp"
+        android:paddingHorizontal="32dp"/>
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/articleTitle2"
+        android:text="New York City"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        android:layout_gravity="center"/>
+    <ImageView
+        android:layout_width="wrap_content"
+        android:layout_height="150dp"
+        android:id="@+id/articleImage2"
+        />
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/articleDescription2"
+        android:text="Boston[a] is the capital and most populous city in the Commonwealth of Massachusetts in the United States...."
+        android:paddingVertical="8dp"
+        android:paddingHorizontal="32dp"/>
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center">
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Vote Top"
+            android:id="@+id/voteTopBut"
+            />
+
+        <Button
+            android:id="@+id/voteBotBut"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Vote Bottom"
+/>
+
+    </LinearLayout>
+
+</LinearLayout>
