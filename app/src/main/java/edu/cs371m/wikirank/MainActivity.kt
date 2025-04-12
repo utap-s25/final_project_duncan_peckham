@@ -19,6 +19,7 @@ import edu.cs371m.wikirank.ui.MainViewModel
 
 class MainActivity : AppCompatActivity() {
     // This allows us to do better testing
+    private val viewModel: MainViewModel by viewModels()
     companion object {
         var globalDebug = true
     }
@@ -36,6 +37,9 @@ class MainActivity : AppCompatActivity() {
         initDebug()
         val activityMainBinding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(activityMainBinding.root)
+
+        viewModel.setArticleOneTitle("Boston")
+        viewModel.setArticleTwoTitle("New York City")
 
     }
 }
