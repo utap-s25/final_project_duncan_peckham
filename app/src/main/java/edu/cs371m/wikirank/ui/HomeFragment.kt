@@ -20,22 +20,19 @@ class HomeFragment: Fragment(R.layout.wiki_vote_frag) {
         super.onViewCreated(view, savedInstanceState)
         val binding = WikiVoteFragBinding.bind(view)
         Log.d(javaClass.simpleName, "onViewCreated")
-        var articleOne: WikiShortArticle? = viewModel.getArticleOne()
-        var articleTwo: WikiShortArticle? = viewModel.getArticleTwo()
+        viewModel.repoFetch()
+        val articleOne: WikiShortArticle? = viewModel.getArticleOne()
+        val articleTwo: WikiShortArticle? = viewModel.getArticleTwo()
 
-        if(articleOne != null){
-            binding.articleTitle1.text = articleOne.title
-            binding.articleDescription1.text = articleOne.shortDescription
-            //get image
+        viewModel.observeArticleOne().observe(viewLifecycleOwner){
+            binding.articleTitle1.text = it.title
+            binding.articleDescription1.text = it.shortDescription
+            Glide.glideFetch(it.getImageUrl(), binding.articleImage1)
         }
-        if(articleTwo != null){
-            binding.articleTitle2.text = articleTwo.title
-            binding.articleDescription2.text = articleTwo.shortDescription
+        viewModel.observeArticleTwo().observe(viewLifecycleOwner){
+            binding.articleTitle2.text = it.title
+            binding.articleDescription2.text = it.shortDescription
+            Glide.glideFetch(it.getImageUrl(), binding.articleImage2)
         }
-
-
-        Glide.glideFetch("https://upload.wikimedia.org/wikipedia/commons/e/e2/Boston_-Massachusetts_State_House_%2848718911666%29.jpg", binding.articleImage1)
-        Glide.glideFetch("https://upload.wikimedia.org/wikipedia/commons/4/45/Liberty02.jpg", binding.articleImage2)
-
     }
 }

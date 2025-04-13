@@ -5,6 +5,7 @@ import com.google.gson.GsonBuilder
 import com.google.gson.JsonDeserializationContext
 import com.google.gson.JsonDeserializer
 import com.google.gson.JsonElement
+import com.google.gson.annotations.SerializedName
 import okhttp3.HttpUrl
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
@@ -19,9 +20,29 @@ import java.lang.reflect.Type
 interface WikiApi {
     //example url https://en.wikipedia.org/w/api.php?action=query&titles=Albert_Einstein&prop=pageprops&format=json
     @GET("/w/api.php?action=query&prop=pageprops&format=json")
-    suspend fun getShortArticle(@Query("title") title: String) : WikiShortArticleResponse?
+    suspend fun getShortArticle(@Query("titles") title: String) : WikiShortArticleResponse?
 
-    data class WikiShortArticleResponse(val result: WikiShortArticle)
+    data class WikiShortArticleResponse(val query: WikiQuery)
+
+    data class WikiQuery(val pages: Map<String, Page>?)
+
+    data class Page(
+        val pageid: Int?,
+        val title: String?,
+        val pageprops: PageProps?
+    )
+
+    data class PageProps(
+        @SerializedName("wikibase_item")
+        val wikibaseItem: String?,
+
+        @SerializedName("wikibase-shortdesc")
+        val shortdesc: String?,
+
+        @SerializedName("page_image_free")
+        val pageImageFree: String?
+    )
+
 
     companion object {
         private fun buildGsonConverterFactory(): GsonConverterFactory{
