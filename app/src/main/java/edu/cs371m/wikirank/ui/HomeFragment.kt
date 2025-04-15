@@ -21,8 +21,6 @@ class HomeFragment: Fragment(R.layout.wiki_vote_frag) {
         val binding = WikiVoteFragBinding.bind(view)
         Log.d(javaClass.simpleName, "onViewCreated")
         viewModel.repoFetch()
-        val articleOne: WikiShortArticle? = viewModel.getArticleOne()
-        val articleTwo: WikiShortArticle? = viewModel.getArticleTwo()
 
         viewModel.observeArticleOne().observe(viewLifecycleOwner){
             binding.articleTitle1.text = it.title

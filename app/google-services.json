@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "725531879697",
+    "project_id": "utap-final",
+    "storage_bucket": "utap-final.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:725531879697:android:8049439621eaf2abad04b0",
+        "android_client_info": {
+          "package_name": "edu.cs371m.wikirank"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAz7EiixHSHSf1k1KHWaaEr8RlsnUvFCiQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
