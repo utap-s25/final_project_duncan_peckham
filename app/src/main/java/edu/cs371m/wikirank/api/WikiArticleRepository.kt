@@ -20,6 +20,17 @@ class WikiArticleRepository(private val wikiApi: WikiApi) {
         )
     }
 
+    private fun unpackArticle(response: WikiApi.WikiFullArticleResponse?): WikiArticle{
+        val page = response?.query?.pages?.values?.firstOrNull()
+        val pageTitle = page?.title ?: ""
+        val articleExtract = page?.extract ?: ""
+
+        return WikiArticle(
+            title = pageTitle,
+            articleExtract = articleExtract
+        )
+    }
+
     suspend fun getShortArticle(title: String): WikiShortArticle{
         Log.d("getShortArticle", "Getting article $title")
         val response: WikiApi.WikiShortArticleResponse? = wikiApi.getShortArticle(title)
@@ -28,5 +39,12 @@ class WikiArticleRepository(private val wikiApi: WikiApi) {
         return cleanedResponse
     }
 
+    suspend fun getArticle(title: String): WikiArticle{
+        Log.d("getArticle", "Getting article $title")
+        val response: WikiApi.WikiFullArticleResponse? = wikiApi.getFullArticle(title)
+        val cleanedResponse = unpackArticle(response)
+        Log.d("getArticle", "$cleanedResponse")
+        return cleanedResponse
+    }
 
 }

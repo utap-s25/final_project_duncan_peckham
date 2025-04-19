@@ -8,6 +8,23 @@
         android:id="@+id/homeFragment"
         android:name="edu.cs371m.wikirank.ui.HomeFragment"
         android:label="Home">
+        <action
+            android:id="@+id/action_homeFragment_to_article"
+            app:destination="@id/articleFragment">
+            <argument
+                android:name="article"
+                app:argType="edu.cs371m.wikirank.api.WikiShortArticle"/>
+        </action>
+    </fragment>
+
+    <fragment
+        android:id="@+id/articleFragment"
+        android:name="edu.cs371m.wikirank.ui.ArticleFragment"
+        android:label="Article"
+        >
+        <argument
+            android:name="article"
+            app:argType="edu.cs371m.wikirank.api.WikiShortArticle"/>
     </fragment>
 
 </navigation>

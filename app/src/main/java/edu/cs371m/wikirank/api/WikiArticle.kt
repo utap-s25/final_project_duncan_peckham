@@ -1,4 +1,10 @@
 package edu.cs371m.wikirank.api
 
-class WikiArticle {
-}
+import com.google.gson.annotations.SerializedName
+
+class WikiArticle (
+    @SerializedName("title")
+    val title: String,
+    @SerializedName("extract")
+    val articleExtract: String
+)

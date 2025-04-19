@@ -32,5 +32,7 @@ class HomeFragment: Fragment(R.layout.wiki_vote_frag) {
             binding.articleDescription2.text = it.shortDescription
             Glide.glideFetch(it.getImageUrl(), binding.articleImage2)
         }
+
+        // TODO Listeners on buttons to make votes
     }
 }

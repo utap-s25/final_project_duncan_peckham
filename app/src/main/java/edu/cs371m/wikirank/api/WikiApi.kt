@@ -18,9 +18,16 @@ import retrofit2.http.Query
 import java.lang.reflect.Type
 
 interface WikiApi {
+
+    //todo add another endpoint call to get more detailed data about each article
     //example url https://en.wikipedia.org/w/api.php?action=query&titles=Albert_Einstein&prop=pageprops&format=json
     @GET("/w/api.php?action=query&prop=pageprops&format=json")
     suspend fun getShortArticle(@Query("titles") title: String) : WikiShortArticleResponse?
+
+    @GET("/w/api.php?action=query&prop=extracts&format=json&explaintext=true")
+    suspend fun getFullArticle(@Query("titles") title: String): WikiFullArticleResponse?
+
+    data class WikiFullArticleResponse(val query: WikiQuery)
 
     data class WikiShortArticleResponse(val query: WikiQuery)
 
@@ -30,6 +37,7 @@ interface WikiApi {
         val pageid: Int?,
         val title: String?,
         val pageprops: PageProps?
+        val extract: String?
     )
 
     data class PageProps(

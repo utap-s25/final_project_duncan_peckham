@@ -7,6 +7,7 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import edu.cs371m.wikirank.api.WikiApi
+import edu.cs371m.wikirank.api.WikiArticle
 import edu.cs371m.wikirank.api.WikiArticleRepository
 import edu.cs371m.wikirank.api.WikiShortArticle
 import kotlinx.coroutines.launch
@@ -60,7 +61,10 @@ class MainViewModel: ViewModel() {
         }
     }
 
-
+    suspend fun getArticle(title: String): WikiArticle{
+        // hit cache
+        return wikiApiRepository.getArticle(title)
+    }
     fun getArticleOne(): WikiShortArticle? {
         return articleOneShort.value
     }
@@ -89,5 +93,11 @@ class MainViewModel: ViewModel() {
         refreshTrigger.value = Unit
     }
 
+    fun repoVote(){
+        // todo - upload current matchup vote --
+    }
 
+    fun getVote(){
+        // todo - query votes for current matchup - to be run when there is an update not from the current user
+    }
 }
