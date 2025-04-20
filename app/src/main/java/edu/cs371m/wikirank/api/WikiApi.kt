@@ -36,7 +36,7 @@ interface WikiApi {
     data class Page(
         val pageid: Int?,
         val title: String?,
-        val pageprops: PageProps?
+        val pageprops: PageProps?,
         val extract: String?
     )
 

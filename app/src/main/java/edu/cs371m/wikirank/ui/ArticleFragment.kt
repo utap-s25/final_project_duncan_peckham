@@ -29,6 +29,7 @@ class ArticleFragment: Fragment(R.layout.article_frag) {
         binding.articleTitle.text = args.article.title
         binding.articleShortDescription.text = args.article.shortDescription
         // for full description, need to send new API request
+        // todo refactor this to use viewmodel livedata instead
         viewLifecycleOwner.lifecycleScope.launch {
             binding.articleFullDescription.text = viewModel.getArticle(args.article.title).articleExtract
         }

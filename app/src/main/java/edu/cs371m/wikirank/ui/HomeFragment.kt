@@ -33,6 +33,16 @@ class HomeFragment: Fragment(R.layout.wiki_vote_frag) {
             Glide.glideFetch(it.getImageUrl(), binding.articleImage2)
         }
 
+        binding.articleTitle1.setOnClickListener {
+            val nav = findNavController()
+            val action = HomeFragmentDirections.actionHomeFragmentToArticle(viewModel.getArticleOne()!!)
+            nav.navigate(action)
+        }
+        binding.articleTitle2.setOnClickListener {
+            val nav = findNavController()
+            val action = HomeFragmentDirections.actionHomeFragmentToArticle(viewModel.getArticleTwo()!!)
+            nav.navigate(action)
+        }
         // TODO Listeners on buttons to make votes
     }
 }
