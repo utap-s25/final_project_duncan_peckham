@@ -1,14 +1,13 @@
-package edu.cs371m.wikirank
+package edu.cs371m.wikirank.DB
 
 
 import android.util.Log
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
-import com.google.firebase.firestore.Query.Direction
+import edu.cs371m.wikirank.api.WikiShortArticle
 
 class ViewModelDBHelper {
     private val db: FirebaseFirestore = FirebaseFirestore.getInstance()
-    private val rootCollection = "allPhotos" // change when decided the database layout
 
     // If we want to listen for real time updates use this
     // .addSnapshotListener { querySnapshot, firebaseFirestoreException ->
@@ -22,20 +21,28 @@ class ViewModelDBHelper {
     // (Will need to pull this whole collection when calculating elo scores locally, unless I want to do gradual calculations online)
     // have another collection for a user's favorite articles
     private fun limitAndGet(query: Query,
-                            resultListener: (List<Unit>)->Unit) {
+                            resultListener: (List<DBArticle>)->Unit) {
         query
-            .limit(100)
             .get()
             .addOnSuccessListener { result ->
                 Log.d(javaClass.simpleName, "allNotes fetch ${result!!.documents.size}")
                 // NB: This is done on a background thread
                 resultListener(result.documents.mapNotNull {
-                    //it.toObject(PhotoMeta::class.java)
+                    it.toObject(DBArticle::class.java)
                 })
             }
             .addOnFailureListener {
                 Log.d(javaClass.simpleName, "allNotes fetch FAILED ", it)
                 resultListener(listOf())
             }
+    }
+
+    fun fetchCategory(
+        category: String,
+        resultListener: (List<DBArticle>) -> Unit
+    ){
+        val ref = db.collection("articles")
+        val query = ref.orderBy("order_id")
+        limitAndGet(query, resultListener)
     }
 }

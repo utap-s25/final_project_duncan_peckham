@@ -6,8 +6,9 @@ import androidx.lifecycle.MediatorLiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import edu.cs371m.wikirank.DB.DBArticle
 import edu.cs371m.wikirank.User
-import edu.cs371m.wikirank.ViewModelDBHelper
+import edu.cs371m.wikirank.DB.ViewModelDBHelper
 import edu.cs371m.wikirank.api.WikiApi
 import edu.cs371m.wikirank.api.WikiArticle
 import edu.cs371m.wikirank.api.WikiArticleRepository
@@ -113,6 +114,12 @@ class MainViewModel: ViewModel() {
 
     fun isLoggedIn(): Boolean{
         return currentAuthUser != invalidUser
+    }
+
+    fun fetchCategory(category: String, resultListener:(List<DBArticle>) -> Unit){
+        dbHelp.fetchCategory(category){
+            Log.d("viewmodel", it.toString())
+        }
     }
 
 }
