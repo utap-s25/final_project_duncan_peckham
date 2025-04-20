@@ -22,6 +22,7 @@ class MainActivity : AppCompatActivity() {
     // This allows us to do better testing
     private val viewModel: MainViewModel by viewModels()
     private var actionBarBinding: ActionBarBinding? = null
+    lateinit var authUser: AuthUser
     companion object {
         var globalDebug = true
     }
@@ -39,7 +40,18 @@ class MainActivity : AppCompatActivity() {
         actionBar.setDisplayShowCustomEnabled(true)
         actionBarBinding =ActionBarBinding.inflate(layoutInflater)
         actionBar.customView = actionBarBinding?.root
+        actionBarBinding?.profileIcon?.setOnClickListener{
+            if(viewModel.isLoggedIn()){
+                findNavController(R.id.main_frame).navigate(R.id.profileFragment)
+            }else{
+                authUser.logout()
+            }
 
+        }
+    }
+
+    fun logout(){
+        authUser.logout()
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -60,5 +72,16 @@ class MainActivity : AppCompatActivity() {
         }
         activityMainBinding.toolbar.setupWithNavController(navController, appBarConfiguration)
 
+    }
+
+    override fun onStart(){
+        super.onStart()
+        Log.d("MainActivity", "onStart")
+        authUser = AuthUser(activityResultRegistry)
+        lifecycle.addObserver(authUser)
+
+        authUser.observeUser().observe(this){
+            viewModel.setCurrentAuthUser(it)
+        }
     }
 }

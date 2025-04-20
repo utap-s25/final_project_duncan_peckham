@@ -27,4 +27,10 @@
             app:argType="edu.cs371m.wikirank.api.WikiShortArticle"/>
     </fragment>
 
+    <fragment
+        android:id="@+id/profileFragment"
+        android:name="edu.cs371m.wikirank.ui.ProfileFragment"
+        android:label="Profile"
+        />
+
 </navigation>

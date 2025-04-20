@@ -6,14 +6,19 @@ import androidx.lifecycle.MediatorLiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import edu.cs371m.wikirank.User
+import edu.cs371m.wikirank.ViewModelDBHelper
 import edu.cs371m.wikirank.api.WikiApi
 import edu.cs371m.wikirank.api.WikiArticle
 import edu.cs371m.wikirank.api.WikiArticleRepository
 import edu.cs371m.wikirank.api.WikiShortArticle
+import edu.cs371m.wikirank.invalidUser
 import kotlinx.coroutines.launch
 
 class MainViewModel: ViewModel() {
-    // potentially have title for each article, then the short/long articles as mediator live data based on that
+    private var currentAuthUser = invalidUser
+    private val dbHelp = ViewModelDBHelper()
+
     private val refreshTrigger = MutableLiveData<Unit>()
 
     private val wikiApi: WikiApi = WikiApi.create()
@@ -24,6 +29,7 @@ class MainViewModel: ViewModel() {
     private var articleTwoTitle = MutableLiveData<String>().apply{
         value = "New York City"
     }
+
 
     private var articleOneShort = MediatorLiveData<WikiShortArticle>().apply{
         addSource(articleOneTitle) { title: String ->
@@ -100,4 +106,13 @@ class MainViewModel: ViewModel() {
     fun getVote(){
         // todo - query votes for current matchup - to be run when there is an update not from the current user
     }
+
+    fun setCurrentAuthUser(user: User){
+        currentAuthUser = user
+    }
+
+    fun isLoggedIn(): Boolean{
+        return currentAuthUser != invalidUser
+    }
+
 }

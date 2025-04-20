@@ -80,7 +80,6 @@ class AuthUser(private val registry: ActivityResultRegistry) :
     // This override makes us a valid FirebaseAuth.AuthStateListener
     override fun onAuthStateChanged(p0: FirebaseAuth) {
         Log.d(TAG, "onAuthStateChanged null? ${p0.currentUser == null}")
-        // XXX Write me
         postUserUpdate(p0.currentUser)
     }
     private fun user(): FirebaseUser? {
