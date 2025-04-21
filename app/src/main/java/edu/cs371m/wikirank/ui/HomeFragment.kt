@@ -25,7 +25,6 @@ class HomeFragment: Fragment(R.layout.wiki_vote_frag) {
 //        if (cities != null) {
 //            viewModel.addArticle("cities", cities)
 //        }
-        viewModel.getDBArticles()
 
         viewModel.observeArticleOne().observe(viewLifecycleOwner){
             binding.articleTitle1.text = it.title

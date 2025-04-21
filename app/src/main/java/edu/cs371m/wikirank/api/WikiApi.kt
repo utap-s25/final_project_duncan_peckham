@@ -22,14 +22,19 @@ interface WikiApi {
     //todo add another endpoint call to get more detailed data about each article
     //example url https://en.wikipedia.org/w/api.php?action=query&titles=Albert_Einstein&prop=pageprops&format=json
     @GET("/w/api.php?action=query&prop=pageprops&format=json&generator=search")
-    suspend fun getShortArticle(@Query("gsrsearch") title: String) : WikiShortArticleResponse?
+    suspend fun getShortArticle(@Query("gsrsearch") title: String) : WikiArticleResponse?
 
     @GET("/w/api.php?action=query&prop=extracts&format=json&explaintext=true")
-    suspend fun getFullArticle(@Query("titles") title: String): WikiFullArticleResponse?
+    suspend fun getFullArticle(@Query("titles") title: String): WikiArticleResponse?
 
-    data class WikiFullArticleResponse(val query: WikiQuery)
+    @GET("/w/api.php?action=query&format=json&prop=pageimages")
+    suspend fun getThumbnail(
+        @Query("titles") title: String,
+        @Query("pithumbsize") size: Int
+    ): WikiArticleResponse?
 
-    data class WikiShortArticleResponse(val query: WikiQuery)
+
+    data class WikiArticleResponse(val query: WikiQuery)
 
     data class WikiQuery(val pages: Map<String, Page>?)
 
@@ -38,7 +43,8 @@ interface WikiApi {
         val title: String?,
         val pageprops: PageProps?,
         val extract: String?,
-        val index: Int?
+        val index: Int?,
+        val thumbnail: Thumbnail?
     )
 
     data class PageProps(
@@ -50,6 +56,12 @@ interface WikiApi {
 
         @SerializedName("page_image_free")
         val pageImageFree: String?
+    )
+
+    data class Thumbnail(
+        val source: String?,
+        val width: Int?,
+        val height: Int?
     )
 
 

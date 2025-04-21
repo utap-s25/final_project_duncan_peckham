@@ -28,9 +28,34 @@ class MainViewModel: ViewModel() {
     private val wikiApi: WikiApi = WikiApi.create()
     private val wikiApiRepository: WikiArticleRepository = WikiArticleRepository(wikiApi)
 
-    private var articleOneDB = MutableLiveData<DBArticle>()
-    private var articleTwoDB = MutableLiveData<DBArticle>()
+    private var leaderboards = MutableLiveData<Map<String, List<WikiShortArticle>>>()
+    private var curCategory = MutableLiveData<String>("cities")
 
+    private var articleOneIndex = MutableLiveData<Int>(0)
+    private var articleTwoIndex = MutableLiveData<Int>(0)
+
+    private var articleOneDB = MediatorLiveData<DBArticle>().apply{
+        addSource(articleOneIndex) {newInd: Int ->
+            dbHelp.fetchArticle("cities", newInd){
+                if(it.isNotEmpty()){
+                    this@apply.postValue(it[0])
+                }
+            }
+        }
+    }
+    private var articleTwoDB =MediatorLiveData<DBArticle>().apply{
+        addSource(articleTwoIndex) {newInd: Int ->
+            dbHelp.fetchArticle("cities", newInd){
+                if(it.isNotEmpty()){
+                    this@apply.postValue(it[0])
+                }
+            }
+        }
+    }
+
+    init {
+        randomizeDBArticles()
+    }
 
     private var articleOneShort = MediatorLiveData<WikiShortArticle>().apply{
         addSource(articleOneDB) { newArticle: DBArticle ->
@@ -72,7 +97,7 @@ class MainViewModel: ViewModel() {
         }
     }
 
-    suspend fun getArticle(title: String): WikiArticle{
+    suspend fun getArticle(title: String): WikiArticle? {
         // hit cache
         return wikiApiRepository.getArticle(title)
     }
@@ -91,21 +116,11 @@ class MainViewModel: ViewModel() {
         return articleTwoShort
     }
 
-    fun getDBArticles(){
+    fun randomizeDBArticles(){
         val rand1 = (2..101).random()
         val rand2 = (2..101).random()
-        dbHelp.fetchArticle("cities", rand1){
-            if(it.isNotEmpty()){
-                articleOneDB.postValue(it[0])
-            }
-
-        }
-        dbHelp.fetchArticle("cities", rand2){
-            if(it.isNotEmpty()){
-                articleTwoDB.postValue(it[0])
-            }
-
-        }
+        articleOneIndex.postValue(rand1)
+        articleTwoIndex.postValue(rand2)
     }
 
     fun repoFetch(){
@@ -121,10 +136,6 @@ class MainViewModel: ViewModel() {
             vote = vote
         )
         dbHelp.addVote(matchUp, successListener)
-    }
-
-    fun getVote(){
-        // todo - query votes for current matchup - to be run when there is an update not from the current user
     }
 
     fun setCurrentAuthUser(user: User){
@@ -143,6 +154,10 @@ class MainViewModel: ViewModel() {
 
     fun addArticle(category: String, l: List<String>){
         dbHelp.addArticles(category, l)
+    }
+
+    fun getLeaderboardPos(category: String, position: Int): WikiShortArticle? {
+        return leaderboards.value?.get(category)?.get(position)
     }
 
 }
