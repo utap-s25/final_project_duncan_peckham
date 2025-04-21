@@ -61,6 +61,17 @@ class ViewModelDBHelper {
         limitAndGet(query, resultListener)
         }
 
+    fun addVote(matchUp: MatchUp, onSuccess: () -> Unit){
+        val ref = db.collection("matchups")
+        ref.add(matchUp).addOnSuccessListener {
+            Log.d("addVote", "successfully added vote")
+            onSuccess()
+        }
+            .addOnFailureListener {
+                Log.d("addVote", "failed adding vote")
+            }
+    }
+
     fun addArticles(
         category: String,
         names: List<String>

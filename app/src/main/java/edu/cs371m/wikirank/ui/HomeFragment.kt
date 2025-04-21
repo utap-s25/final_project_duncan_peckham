@@ -7,6 +7,7 @@ import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+import edu.cs371m.wikirank.DB.Vote
 import edu.cs371m.wikirank.databinding.WikiVoteFragBinding
 import edu.cs371m.wikirank.R
 import edu.cs371m.wikirank.api.WikiShortArticle
@@ -49,5 +50,16 @@ class HomeFragment: Fragment(R.layout.wiki_vote_frag) {
             nav.navigate(action)
         }
         // TODO Listeners on buttons to make votes
+
+        binding.voteTopBut.setOnClickListener {
+            viewModel.castVote(Vote.ARTICLE_ONE){
+                Log.d("HomeFragment", "Cast vote for article one!")
+            }
+        }
+        binding.voteBotBut.setOnClickListener {
+            viewModel.castVote(Vote.ARTICLE_TWO){
+                Log.d("HomeFragment", "Cast vote for article two!")
+            }
+        }
     }
 }

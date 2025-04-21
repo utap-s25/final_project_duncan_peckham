@@ -8,8 +8,10 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import edu.cs371m.wikirank.DB.DBArticle
+import edu.cs371m.wikirank.DB.MatchUp
 import edu.cs371m.wikirank.User
 import edu.cs371m.wikirank.DB.ViewModelDBHelper
+import edu.cs371m.wikirank.DB.Vote
 import edu.cs371m.wikirank.api.WikiApi
 import edu.cs371m.wikirank.api.WikiArticle
 import edu.cs371m.wikirank.api.WikiArticleRepository
@@ -111,8 +113,14 @@ class MainViewModel: ViewModel() {
         refreshTrigger.value = Unit
     }
 
-    fun repoVote(){
-        // todo - upload current matchup vote --
+    fun castVote(vote: Vote, successListener: () -> Unit){
+        val matchUp = MatchUp(
+            articleOne = articleOneDB.value?.firestoreID.toString(),
+            articleTwo = articleTwoDB.value?.firestoreID.toString(),
+            userId = currentAuthUser.uid,
+            vote = vote
+        )
+        dbHelp.addVote(matchUp, successListener)
     }
 
     fun getVote(){
