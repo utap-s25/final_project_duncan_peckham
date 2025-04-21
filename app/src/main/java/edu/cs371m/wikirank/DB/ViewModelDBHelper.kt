@@ -61,4 +61,41 @@ class ViewModelDBHelper {
         limitAndGet(query, resultListener)
         }
 
+    fun addArticles(
+        category: String,
+        names: List<String>
+    ){
+        val ref = db.collection("articles")
+        // Step 1: Find the highest order_id in the given category
+        ref.whereEqualTo("category", category)
+            .orderBy("order_id", Query.Direction.DESCENDING)
+            .limit(1)
+            .get()
+            .addOnSuccessListener { result ->
+                val maxOrderId = result.documents.firstOrNull()
+                    ?.getLong("order_id") ?: 0
+                var newOrderId = maxOrderId + 1L
+                for(name in names){
+                    val newArticle = DBArticle(
+                        name = name,
+                        category = category,
+                        order_id = newOrderId.toInt()
+                    )
+
+                    // Add to the collection
+                    ref.add(newArticle)
+                        .addOnSuccessListener {
+                            Log.d("addArticle", "Successfully added article with order_id $newOrderId")
+                        }
+                        .addOnFailureListener {
+                            Log.e("addArticle", "Failed to add article", it)
+                        }
+                    newOrderId++
+                }
+
+            }
+            .addOnFailureListener {
+                Log.e("addArticle", "Failed to fetch max order_id", it)
+            }
+    }
 }

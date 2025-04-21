@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+<!--
+Used this list to populate my database by calling my add articles function with it
+I had ChatGPT o3 Generate this list with the following prompt:
+ Write me a list in the format of this list:
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="city">
+        <item>"City?"</item>
+        <item>Austin</item>
+        <item>Boston</item>
+        <item>Chicago</item>
+        <item>Dallas</item>
+        <item>Denver</item>
+        <item>Houston</item>
+        <item>Los Angeles</item>
+        <item>New York</item>
+        <item>San Francisco</item>
+        <item>Seattle</item>
+    </string-array>
+</resources>
+
+The list should include the top 100 us cities by population in order and no other information.
+ (I then followed up with this prompt: Recreate this list, but make the names specific enough so that searching for these in wikipedia will come up with the page for the city (I think in most cases you don't need to change anything, or just add the state after))-->
+    <string-array name="city">
+            <item>New York City</item>
+            <item>Los Angeles, California</item>
+            <item>Chicago, Illinois</item>
+            <item>Houston, Texas</item>
+            <item>Phoenix, Arizona</item>
+            <item>Philadelphia, Pennsylvania</item>
+            <item>San Antonio, Texas</item>
+            <item>Dallas, Texas</item>
+            <item>San Diego, California</item>
+            <item>Austin, Texas</item>
+            <item>Jacksonville, Florida</item>
+            <item>San Jose, California</item>
+            <item>Fort Worth, Texas</item>
+            <item>Columbus, Ohio</item>
+            <item>Charlotte, North Carolina</item>
+            <item>Indianapolis, Indiana</item>
+            <item>San Francisco, California</item>
+            <item>Seattle, Washington</item>
+            <item>Denver, Colorado</item>
+            <item>Oklahoma City, Oklahoma</item>
+            <item>Nashville, Tennessee</item>
+            <item>El Paso, Texas</item>
+            <item>Washington, D.C.</item>
+            <item>Las Vegas, Nevada</item>
+            <item>Boston, Massachusetts</item>
+            <item>Portland, Oregon</item>
+            <item>Louisville, Kentucky</item>
+            <item>Memphis, Tennessee</item>
+            <item>Detroit, Michigan</item>
+            <item>Baltimore, Maryland</item>
+            <item>Milwaukee, Wisconsin</item>
+            <item>Albuquerque, New Mexico</item>
+            <item>Tucson, Arizona</item>
+            <item>Fresno, California</item>
+            <item>Sacramento, California</item>
+            <item>Mesa, Arizona</item>
+            <item>Kansas City, Missouri</item>
+            <item>Atlanta, Georgia</item>
+            <item>Colorado Springs, Colorado</item>
+            <item>Omaha, Nebraska</item>
+            <item>Raleigh, North Carolina</item>
+            <item>Virginia Beach, Virginia</item>
+            <item>Long Beach, California</item>
+            <item>Miami, Florida</item>
+            <item>Oakland, California</item>
+            <item>Minneapolis, Minnesota</item>
+            <item>Tulsa, Oklahoma</item>
+            <item>Bakersfield, California</item>
+            <item>Tampa, Florida</item>
+            <item>Wichita, Kansas</item>
+            <item>Arlington, Texas</item>
+            <item>Aurora, Colorado</item>
+            <item>New Orleans, Louisiana</item>
+            <item>Cleveland, Ohio</item>
+            <item>Anaheim, California</item>
+            <item>Honolulu, Hawaii</item>
+            <item>Henderson, Nevada</item>
+            <item>Stockton, California</item>
+            <item>Riverside, California</item>
+            <item>Lexington, Kentucky</item>
+            <item>Corpus Christi, Texas</item>
+            <item>Orlando, Florida</item>
+            <item>Irvine, California</item>
+            <item>Cincinnati, Ohio</item>
+            <item>Santa Ana, California</item>
+            <item>Newark, New Jersey</item>
+            <item>Saint Paul, Minnesota</item>
+            <item>Pittsburgh, Pennsylvania</item>
+            <item>Greensboro, North Carolina</item>
+            <item>Lincoln, Nebraska</item>
+            <item>Durham, North Carolina</item>
+            <item>Plano, Texas</item>
+            <item>Anchorage, Alaska</item>
+            <item>Jersey City, New Jersey</item>
+            <item>St. Louis, Missouri</item>
+            <item>Chandler, Arizona</item>
+            <item>North Las Vegas, Nevada</item>
+            <item>Chula Vista, California</item>
+            <item>Buffalo, New York</item>
+            <item>Gilbert, Arizona</item>
+            <item>Reno, Nevada</item>
+            <item>Madison, Wisconsin</item>
+            <item>Fort Wayne, Indiana</item>
+            <item>Toledo, Ohio</item>
+            <item>Lubbock, Texas</item>
+            <item>St. Petersburg, Florida</item>
+            <item>Laredo, Texas</item>
+            <item>Irving, Texas</item>
+            <item>Chesapeake, Virginia</item>
+            <item>Glendale, Arizona</item>
+            <item>Winston‑Salem, North Carolina</item>
+            <item>Scottsdale, Arizona</item>
+            <item>Garland, Texas</item>
+            <item>Boise, Idaho</item>
+            <item>Norfolk, Virginia</item>
+            <item>Port St. Lucie, Florida</item>
+            <item>Spokane, Washington</item>
+            <item>Richmond, Virginia</item>
+            <item>Fremont, California</item>
+            <item>Huntsville, Alabama</item>
+    </string-array>
+</resources>

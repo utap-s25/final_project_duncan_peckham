@@ -20,6 +20,10 @@ class HomeFragment: Fragment(R.layout.wiki_vote_frag) {
         super.onViewCreated(view, savedInstanceState)
         val binding = WikiVoteFragBinding.bind(view)
         Log.d(javaClass.simpleName, "onViewCreated")
+//        val cities = context?.resources?.getStringArray(R.array.city)?.toList()
+//        if (cities != null) {
+//            viewModel.addArticle("cities", cities)
+//        }
         viewModel.getDBArticles()
 
         viewModel.observeArticleOne().observe(viewLifecycleOwner){

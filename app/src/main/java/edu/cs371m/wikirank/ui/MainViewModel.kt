@@ -1,5 +1,6 @@
 package edu.cs371m.wikirank.ui
 
+import android.content.Context
 import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MediatorLiveData
@@ -89,11 +90,19 @@ class MainViewModel: ViewModel() {
     }
 
     fun getDBArticles(){
-        dbHelp.fetchArticle("place", 3){
-            articleOneDB.postValue(it[0])
+        val rand1 = (2..101).random()
+        val rand2 = (2..101).random()
+        dbHelp.fetchArticle("cities", rand1){
+            if(it.isNotEmpty()){
+                articleOneDB.postValue(it[0])
+            }
+
         }
-        dbHelp.fetchArticle("place", 4){
-            articleTwoDB.postValue(it[0])
+        dbHelp.fetchArticle("cities", rand2){
+            if(it.isNotEmpty()){
+                articleTwoDB.postValue(it[0])
+            }
+
         }
     }
 
@@ -122,6 +131,10 @@ class MainViewModel: ViewModel() {
         dbHelp.fetchCategory(category){
             Log.d("viewmodel", it.toString())
         }
+    }
+
+    fun addArticle(category: String, l: List<String>){
+        dbHelp.addArticles(category, l)
     }
 
 }
