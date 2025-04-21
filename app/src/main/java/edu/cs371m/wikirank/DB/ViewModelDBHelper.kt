@@ -42,7 +42,23 @@ class ViewModelDBHelper {
         resultListener: (List<DBArticle>) -> Unit
     ){
         val ref = db.collection("articles")
-        val query = ref.orderBy("order_id")
+        val query = ref
+            .whereEqualTo("category", category)
+            .orderBy("order_id")
         limitAndGet(query, resultListener)
     }
+
+    fun fetchArticle(
+        category: String,
+        orderRank: Int,
+        resultListener: (List<DBArticle>) -> Unit){
+        val ref = db.collection("articles")
+        val query = ref
+            .whereEqualTo("category", category)
+            .whereEqualTo("order_id", orderRank)
+            .orderBy("order_id")
+            .limit(1)
+        limitAndGet(query, resultListener)
+        }
+
 }

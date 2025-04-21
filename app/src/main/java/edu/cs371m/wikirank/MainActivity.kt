@@ -62,9 +62,6 @@ class MainActivity : AppCompatActivity() {
         setSupportActionBar(activityMainBinding.toolbar)
         val navController = findNavController(R.id.main_frame)
 
-        viewModel.setArticleOneTitle("Boston")
-        viewModel.setArticleTwoTitle("New York City")
-
         //action bar logic primarily from the reddit hw
         val appBarConfiguration = AppBarConfiguration(navController.graph)
         supportActionBar?.let{

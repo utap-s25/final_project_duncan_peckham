@@ -24,37 +24,38 @@ class MainViewModel: ViewModel() {
 
     private val wikiApi: WikiApi = WikiApi.create()
     private val wikiApiRepository: WikiArticleRepository = WikiArticleRepository(wikiApi)
-    private var articleOneTitle = MutableLiveData<String>().apply{
-        value = "Boston"
-    }
-    private var articleTwoTitle = MutableLiveData<String>().apply{
-        value = "New York City"
-    }
+
+    private var articleOneDB = MutableLiveData<DBArticle>()
+    private var articleTwoDB = MutableLiveData<DBArticle>()
 
 
     private var articleOneShort = MediatorLiveData<WikiShortArticle>().apply{
-        addSource(articleOneTitle) { title: String ->
+        addSource(articleOneDB) { newArticle: DBArticle ->
             Log.d("articleOneShort", "Repo Short Article Request")
             viewModelScope.launch{
-                this@apply.postValue(wikiApiRepository.getShortArticle(title))
+                this@apply.postValue(wikiApiRepository.getShortArticle(newArticle.name))
             }
         }
         addSource(refreshTrigger) {
             viewModelScope.launch{
-                this@apply.postValue(wikiApiRepository.getShortArticle(articleOneTitle.value!!))
+                if(articleOneDB.value != null){
+                    this@apply.postValue(wikiApiRepository.getShortArticle(articleOneDB.value!!.name))
+                }
             }
         }
     }
     private var articleTwoShort = MediatorLiveData<WikiShortArticle>().apply{
-        addSource(articleTwoTitle) { title: String ->
+        addSource(articleTwoDB) { newArticle: DBArticle ->
             Log.d("articleTwoShort", "Repo Short Article Request")
             viewModelScope.launch{
-                this@apply.postValue(wikiApiRepository.getShortArticle(title))
+                this@apply.postValue(wikiApiRepository.getShortArticle(newArticle.name))
             }
         }
         addSource(refreshTrigger) {
             viewModelScope.launch{
-                this@apply.postValue(wikiApiRepository.getShortArticle(articleTwoTitle.value!!))
+                if(articleTwoDB.value != null){
+                    this@apply.postValue(wikiApiRepository.getShortArticle(articleTwoDB.value!!.name))
+                }
             }
         }
     }
@@ -87,12 +88,13 @@ class MainViewModel: ViewModel() {
         return articleTwoShort
     }
 
-    fun setArticleOneTitle(newTitle: String){
-        articleOneTitle.value= newTitle
-    }
-
-    fun setArticleTwoTitle(newTitle: String){
-        articleTwoTitle.value= newTitle
+    fun getDBArticles(){
+        dbHelp.fetchArticle("place", 3){
+            articleOneDB.postValue(it[0])
+        }
+        dbHelp.fetchArticle("place", 4){
+            articleTwoDB.postValue(it[0])
+        }
     }
 
     fun repoFetch(){

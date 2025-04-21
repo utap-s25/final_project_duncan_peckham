@@ -20,7 +20,7 @@ class HomeFragment: Fragment(R.layout.wiki_vote_frag) {
         super.onViewCreated(view, savedInstanceState)
         val binding = WikiVoteFragBinding.bind(view)
         Log.d(javaClass.simpleName, "onViewCreated")
-        viewModel.repoFetch()
+        viewModel.getDBArticles()
 
         viewModel.observeArticleOne().observe(viewLifecycleOwner){
             binding.articleTitle1.text = it.title

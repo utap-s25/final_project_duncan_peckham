@@ -5,7 +5,8 @@ import android.util.Log
 class WikiArticleRepository(private val wikiApi: WikiApi) {
 
     private fun unpackShortArticle(response: WikiApi.WikiShortArticleResponse?): WikiShortArticle {
-        val page = response?.query?.pages?.values?.firstOrNull()
+        val pages = response?.query?.pages
+        val page = pages?.filter { it.value.index == 1 }?.values?.firstOrNull()
         val pageTitle = page?.title ?: ""
         val props = page?.pageprops
         val item = props?.wikibaseItem ?: ""
