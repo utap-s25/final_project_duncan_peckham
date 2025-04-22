@@ -20,15 +20,16 @@ class ViewModelDBHelper {
     // Have another collection for match-ups, which will have the two options and the winning option.
     // (Will need to pull this whole collection when calculating elo scores locally, unless I want to do gradual calculations online)
     // have another collection for a user's favorite articles
-    private fun limitAndGet(query: Query,
-                            resultListener: (List<DBArticle>)->Unit) {
+    private fun <T> limitAndGet(query: Query,
+                            clazz: Class<T>,
+                            resultListener: (List<T>)->Unit) {
         query
             .get()
             .addOnSuccessListener { result ->
                 Log.d(javaClass.simpleName, "allNotes fetch ${result!!.documents.size}")
                 // NB: This is done on a background thread
                 resultListener(result.documents.mapNotNull {
-                    it.toObject(DBArticle::class.java)
+                    it.toObject(clazz)
                 })
             }
             .addOnFailureListener {
@@ -45,7 +46,7 @@ class ViewModelDBHelper {
         val query = ref
             .whereEqualTo("category", category)
             .orderBy("order_id")
-        limitAndGet(query, resultListener)
+        limitAndGet(query, DBArticle::class.java, resultListener)
     }
 
     fun fetchArticle(
@@ -58,8 +59,19 @@ class ViewModelDBHelper {
             .whereEqualTo("order_id", orderRank)
             .orderBy("order_id")
             .limit(1)
-        limitAndGet(query, resultListener)
+        limitAndGet(query, DBArticle::class.java, resultListener)
         }
+
+    fun fetchMatchups(
+        category: String,
+        resultListener: (List<MatchUp>) -> Unit
+    ){
+        val ref = db.collection("matchups")
+        val query = ref
+            .whereEqualTo("category", category)
+            .orderBy("timestamp")
+        limitAndGet(query, MatchUp::class.java, resultListener)
+    }
 
     fun addVote(matchUp: MatchUp, onSuccess: () -> Unit){
         val ref = db.collection("matchups")

@@ -3,6 +3,12 @@
     android:layout_width="match_parent"
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:orientation="horizontal">
+    <ImageView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:src="@drawable/baseline_leaderboard_24"
+        android:id="@+id/leaderboardIcon"
+        android:padding="8dp"/>
     <View
         android:layout_width="0dp"
         android:layout_height="0dp"
@@ -11,5 +17,6 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:src="@drawable/baseline_account_circle_24"
-        android:id="@+id/profileIcon"/>
+        android:id="@+id/profileIcon"
+        android:padding="8dp"/>
 </LinearLayout>

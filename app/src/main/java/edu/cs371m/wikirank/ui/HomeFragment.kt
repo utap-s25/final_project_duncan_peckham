@@ -38,7 +38,7 @@ class HomeFragment: Fragment(R.layout.wiki_vote_frag) {
         }
 
         binding.articleTitle1.setOnClickListener {
-            viewModel.fetchCategory("place"){}
+            viewModel.fetchCategory("cities"){}
             val nav = findNavController()
             val action = HomeFragmentDirections.actionHomeFragmentToArticle(viewModel.getArticleOne()!!)
             nav.navigate(action)

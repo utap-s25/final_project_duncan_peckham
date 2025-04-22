@@ -11,9 +11,18 @@ enum class Vote{
 data class MatchUp (
     val articleOne: String = "",
     val articleTwo: String = "",
+    val category: String = "",
     val userId: String = "",
     val vote: Vote = Vote.ARTICLE_ONE,
 
     @ServerTimestamp var timestamp: Timestamp? = null,
     @DocumentId var firestoreID: String = ""
-)
+){
+    fun contains(article: String): Boolean{
+        return (articleOne == article) || (articleTwo == article)
+    }
+
+    fun won(article: String): Boolean{
+        return ((articleOne == article) && (vote == Vote.ARTICLE_ONE)) || ((articleTwo == article) && (vote == Vote.ARTICLE_TWO))
+    }
+}

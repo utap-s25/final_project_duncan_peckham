@@ -16,6 +16,7 @@ import edu.cs371m.wikirank.api.WikiApi
 import edu.cs371m.wikirank.api.WikiArticle
 import edu.cs371m.wikirank.api.WikiArticleRepository
 import edu.cs371m.wikirank.api.WikiShortArticle
+import edu.cs371m.wikirank.api.WikiThumbnail
 import edu.cs371m.wikirank.invalidUser
 import kotlinx.coroutines.launch
 
@@ -132,6 +133,7 @@ class MainViewModel: ViewModel() {
         val matchUp = MatchUp(
             articleOne = articleOneDB.value?.firestoreID.toString(),
             articleTwo = articleTwoDB.value?.firestoreID.toString(),
+            category = articleOneDB.value?.category ?: return,
             userId = currentAuthUser.uid,
             vote = vote
         )
@@ -156,8 +158,36 @@ class MainViewModel: ViewModel() {
         dbHelp.addArticles(category, l)
     }
 
-    fun getLeaderboardPos(category: String, position: Int): WikiShortArticle? {
-        return leaderboards.value?.get(category)?.get(position)
+    fun getMatchups(category: String, onSuccess: (List<MatchUp>) -> Unit): List<MatchUp>{
+        dbHelp.fetchMatchups(category, onSuccess)
     }
+
+    fun getShortArticles(DBArticles: List<DBArticle>, onSuccess: (List<WikiShortArticle>) -> Unit){
+         viewModelScope.launch{
+             val articleList = DBArticles.map{
+                 wikiApiRepository.getShortArticle(it.name)
+             }.filterNotNull()
+             onSuccess(articleList)
+         }
+    }
+
+    fun orderCategory(category: String){
+        fetchCategory(category){articles ->
+            getMatchups(category) {matchups ->
+
+            }
+        }
+    }
+
+    fun getThumbnail(title: String, onSuccess: (WikiThumbnail) -> Unit){
+        viewModelScope.launch{
+            val thumbnail = wikiApiRepository.getThumbnail(title, 80)
+            if(thumbnail != null){
+                onSuccess(thumbnail)
+            }
+        }
+
+    }
+
 
 }
