@@ -31,7 +31,7 @@ class ArticleAdapter(private val viewModel: MainViewModel,
         fun bind(position: Int) {
             val shortArticle = getItem(position)
             if(shortArticle?.article != null){
-                viewModel.getThumbnail(shortArticle.article.title){ thumbnail ->
+                viewModel.getThumbnail(shortArticle.article.title, 80){ thumbnail ->
                     Glide.glideFetch(thumbnail.imageUrl, rowBinding.articleThumbnail)
                 }
             }

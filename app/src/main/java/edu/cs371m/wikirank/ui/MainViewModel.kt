@@ -30,7 +30,9 @@ import kotlinx.coroutines.Dispatchers
 
 
 class MainViewModel: ViewModel() {
-    private var currentAuthUser = invalidUser
+    private var _authUser = MutableLiveData<User>(invalidUser)
+    val authUser: LiveData<User> get() = _authUser
+
     private val dbHelp = ViewModelDBHelper()
 
     private val refreshTrigger = MutableLiveData<Unit>()
@@ -78,12 +80,6 @@ class MainViewModel: ViewModel() {
         }
     }
 
-
-
-    fun observeCategoryList(): LiveData<List<String>>{
-        return categoryList
-    }
-
     fun getLeaderboards(){
         Log.d(javaClass.simpleName, "getLeaderboards")
         dbHelp.fetchRawLeaderboard { rawLeaderboard ->
@@ -97,7 +93,6 @@ class MainViewModel: ViewModel() {
             )
         }
     }
-
 
     private val matchups: MediatorLiveData<List<MatchUp>> = MediatorLiveData<List<MatchUp>>().apply {
         addSource(curCategory){newCategory ->
@@ -123,30 +118,30 @@ class MainViewModel: ViewModel() {
     private val _rankedObjects = MutableLiveData<List<RankedObject>>()
     private val rankedObjects: LiveData<List<RankedObject>> = _rankedObjects
 
-    val ratedArticles = MediatorLiveData<List<RatedArticle>>().apply{
-        addSource(rankedObjects) { ros ->
-            // first, associate each title -> short Article
+    val ratedArticles = MediatorLiveData<List<RatedArticle>>().apply {
+        fun rebuild() {
+            val ros = _rankedObjects.value ?: return
+            if (ros.isEmpty()) { postValue(emptyList()); return }
+
             viewModelScope.launch {
-                Log.d("ratedArticles", "RankedObjects $ros")
                 val keys = ros.mapNotNull { idToDB[it.id]?.name }
+                if (keys.isEmpty()) { postValue(emptyList()); return@launch }
+
                 val shortMap = wikiApiRepository.getShortArticlesMap(keys)
-                Log.d("ratedArticles", "map $shortMap")
-                val ratedArticles = ros.mapNotNull { ro ->
-                    // Then, associate each rankedObject -> wikiShortArticle through the DBArticle lookup
-                    val db = idToDB[ro.id]
-                    val wiki = shortMap[db?.name]
-                    if (wiki == null) {
-                        Log.d("ratedArticles", "Couldn't find article for ${db?.name}")
-                        return@mapNotNull null
-                    } else {
-                        Log.d("ratedArticles", "Found article for ${db?.name}")
-                    }
+
+                val rows = ros.mapNotNull { ro ->
+                    val db   = idToDB[ro.id]                ?: return@mapNotNull null
+                    val wiki = shortMap[db.name] ?: wikiApiRepository.getShortArticleCached(db.name) ?: return@mapNotNull null
                     RatedArticle(wiki, ro.rating, ro.id)
                 }
-                postValue(ratedArticles)
+                postValue(rows)
             }
         }
+        /* Recompute when either the Elo ranking OR the id-lookup changes */
+        addSource(_rankedObjects) { rebuild() }     // ratings / match-ups changed
+        addSource(leaderboards)    { rebuild() }    // idToDB was just updated
     }
+
 
     private var articleOneShort = MediatorLiveData<WikiShortArticle>().apply{
         addSource(articleOneDB) { newArticle: DBArticle ->
@@ -225,18 +220,18 @@ class MainViewModel: ViewModel() {
             articleOne = articleOneDB.value?.firestoreID.toString(),
             articleTwo = articleTwoDB.value?.firestoreID.toString(),
             category = articleOneDB.value?.category ?: return,
-            userId = currentAuthUser.uid,
+            userId = authUser.value?.uid ?: "",
             vote = vote
         )
         dbHelp.addVote(matchUp, successListener)
     }
 
     fun setCurrentAuthUser(user: User){
-        currentAuthUser = user
+        _authUser.value = user
     }
 
     fun isLoggedIn(): Boolean{
-        return currentAuthUser != invalidUser
+        return authUser.value != invalidUser
     }
 
     fun fetchCategory(category: String, resultListener:(List<DBArticle>) -> Unit){
@@ -250,40 +245,44 @@ class MainViewModel: ViewModel() {
         dbHelp.addArticles(category, l)
     }
 
-    fun getMatchups(category: String, onSuccess: (List<MatchUp>) -> Unit){
-        dbHelp.fetchMatchups(category, onSuccess)
-    }
-
-    fun getShortArticles(titles: List<String>, onSuccess: (List<WikiShortArticle>) -> Unit){
+    fun getThumbnail(title: String, size: Int, onSuccess: (WikiThumbnail) -> Unit){
         viewModelScope.launch{
-            onSuccess(wikiApiRepository.getShortArticlesCached(titles))
-        }
-    }
-
-//    fun getShortArticles(DBArticles: List<DBArticle>, onSuccess: (List<WikiShortArticle>) -> Unit){
-//         viewModelScope.launch{
-//             val articleList = DBArticles.map{
-//                 wikiApiRepository.getShortArticle(it.name)
-//             }.filterNotNull()
-//             onSuccess(articleList)
-//         }
-//    }
-
-    fun orderCategory(category: String, onSuccess: (List<String>) -> Unit){
-        fetchCategory(category){articles ->
-            getMatchups(category) {matchups ->
-                onSuccess( Ranker(articles.map{it.name}, matchups).getList() )
-            }
-        }
-    }
-
-    fun getThumbnail(title: String, onSuccess: (WikiThumbnail) -> Unit){
-        viewModelScope.launch{
-            val thumbnail = wikiApiRepository.getThumbnail(title, 80)
+            val thumbnail = wikiApiRepository.getThumbnail(title, size)
             if(thumbnail != null){
                 onSuccess(thumbnail)
             }
         }
+    }
+
+    //ChatGPT Created the base code given a prompt containing UserMatchUpDisplay and wanting to filter matchup list to the users id
+    val userMatchupRows = MediatorLiveData<List<UserMatchupDisplay>>().apply {
+        fun rebuild() {
+            val uid     = _authUser.value?.uid ?: return
+            val votes   = matchups.value ?: return
+
+            /* --- filter + join --------------------------- */
+            val myVotes = votes.filter { it.userId == uid }
+
+            val needed  = myVotes.flatMap {
+                listOfNotNull(idToDB[it.articleOne]?.name,
+                    idToDB[it.articleTwo]?.name)
+            }.distinct()
+
+            viewModelScope.launch(Dispatchers.IO) {
+                val shortMap = wikiApiRepository.getShortArticlesMap(needed)
+
+                val rows = myVotes.mapNotNull { mu ->
+                    val left  = shortMap[idToDB[mu.articleOne]?.name] ?: return@mapNotNull null
+                    val right = shortMap[idToDB[mu.articleTwo]?.name] ?: return@mapNotNull null
+                    val score = if (mu.vote == Vote.ARTICLE_ONE) "1-0" else "0-1"
+                    UserMatchupDisplay(left, right, score)
+                }
+                postValue(rows)
+            }
+        }
+
+        addSource(matchups) { rebuild() }    // Firestore update
+        addSource(_authUser) { rebuild() }   // login / logout
     }
 
 

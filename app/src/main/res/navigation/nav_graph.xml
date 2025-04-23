@@ -31,7 +31,14 @@
         android:id="@+id/profileFragment"
         android:name="edu.cs371m.wikirank.ui.ProfileFragment"
         android:label="Profile"
-        />
+        >
+        <action
+        android:id="@+id/action_profileFragment_to_article"
+        app:destination="@id/articleFragment">
+        <argument
+            android:name="article"
+            app:argType="edu.cs371m.wikirank.api.WikiShortArticle"/>
+    </action></fragment>
 
     <fragment
         android:id="@+id/leaderboardFragment"

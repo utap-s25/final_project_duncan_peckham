@@ -11,6 +11,7 @@ import edu.cs371m.wikirank.DB.Vote
 import edu.cs371m.wikirank.databinding.WikiVoteFragBinding
 import edu.cs371m.wikirank.R
 import edu.cs371m.wikirank.api.WikiShortArticle
+import edu.cs371m.wikirank.api.WikiThumbnail
 import edu.cs371m.wikirank.glide.AppGlideModule
 import edu.cs371m.wikirank.glide.Glide
 
@@ -29,7 +30,10 @@ class HomeFragment: Fragment(R.layout.wiki_vote_frag) {
         viewModel.observeArticleOne().observe(viewLifecycleOwner){
             binding.articleTitle1.text = it.title
             binding.articleDescription1.text = it.shortDescription
-            Glide.glideFetch(it.getImageUrl(), binding.articleImage1)
+            viewModel.getThumbnail(it.title, 240){
+                Glide.glideFetch(it.imageUrl, binding.articleImage1)
+            }
+
         }
         viewModel.observeArticleTwo().observe(viewLifecycleOwner){
             binding.articleTitle2.text = it.title

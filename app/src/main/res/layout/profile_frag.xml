@@ -39,7 +39,7 @@
         android:id="@+id/favoriteHeader"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Favorite articles"
+        android:text="Past Votes"
         android:textAppearance="?attr/textAppearanceTitleMedium"
         android:textStyle="bold"
         android:textSize="18sp"
@@ -49,7 +49,7 @@
 
     <!-- RecyclerView for favorite articles -->
     <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/favoriteArticlesRv"
+        android:id="@+id/matchupsRV"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
