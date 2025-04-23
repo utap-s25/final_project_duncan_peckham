@@ -24,16 +24,16 @@ object ShortArticleCache {
     fun get(title: String): WikiShortArticle? = cache[title]
 
     @Synchronized
-    fun put(article: WikiShortArticle) {
-        cache[article.title] = article
+    fun put(key: String, article: WikiShortArticle) {
+        cache[key] = article
     }
 
     /** Convenience for bulk lookups. */
     @Synchronized
-    fun getMany(titles: List<String>): Pair<List<WikiShortArticle>, List<String>> {
+    fun getMany(keys: List<String>): Pair<List<WikiShortArticle>, List<String>> {
         val hits   = mutableListOf<WikiShortArticle>()
         val missTs = mutableListOf<String>()
-        titles.forEach { t ->
+        keys.forEach { t ->
             val hit = cache[t]
             if (hit != null){
                 Log.d(javaClass.simpleName, "Cache hit in getMany ${hit.title}")

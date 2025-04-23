@@ -65,23 +65,34 @@ class WikiArticleRepository(private val wikiApi: WikiApi) {
         val missed = getShortArticle(title)
         if( missed != null) {
             Log.d(javaClass.simpleName, "Cache miss $title")
-            ShortArticleCache.put(missed)
+            ShortArticleCache.put(title, missed)
         }
         return missed
     }
 
-    suspend fun getShortArticlesCached(titles: List<String>): List<WikiShortArticle> {
-        val (hits, missTitles) = ShortArticleCache.getMany(titles)
-        if (missTitles.isEmpty()) return hits                  // all cached
+    /** Core helper: fetch and return a Map keyed by the *request* strings. */
+    suspend fun getShortArticlesMap(keys: List<String>): Map<String, WikiShortArticle> {
+        val (hits, missKeys) = ShortArticleCache.getMany(keys)
+        val result = hits.associateBy { it.title /* placeholder, we'll patch below */ }
+            .toMutableMap()
 
-        // Parallel fetch the misses
-        val fetched = coroutineScope {
-            missTitles.map { t -> async { getShortArticle(t) } }.awaitAll()
-        }.filterNotNull()
-
-        fetched.forEach { ShortArticleCache.put(it) }          // remember them
-        return hits + fetched
+        // fetch misses concurrently
+        coroutineScope {
+            missKeys.map { k -> async { k to getShortArticle(k) } }
+                .awaitAll()
+                .forEach { (k, art) ->
+                    if (art != null) {
+                        ShortArticleCache.put(k, art)
+                        result[k] = art                 // key = request string
+                    }
+                }
+        }
+        return result
     }
+
+    /** Thin wrapper for callers that still expect a List. */
+    suspend fun getShortArticlesCached(keys: List<String>): List<WikiShortArticle> =
+        getShortArticlesMap(keys).values.toList()
 
     suspend fun getArticle(title: String): WikiArticle?{
         Log.d("getArticle", "Getting article $title")

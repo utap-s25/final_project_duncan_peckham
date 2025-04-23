@@ -53,11 +53,13 @@ class HomeFragment: Fragment(R.layout.wiki_vote_frag) {
         binding.voteTopBut.setOnClickListener {
             viewModel.castVote(Vote.ARTICLE_ONE){
                 Log.d("HomeFragment", "Cast vote for article one!")
+                viewModel.randomizeDBArticles()
             }
         }
         binding.voteBotBut.setOnClickListener {
             viewModel.castVote(Vote.ARTICLE_TWO){
                 Log.d("HomeFragment", "Cast vote for article two!")
+                viewModel.randomizeDBArticles()
             }
         }
     }

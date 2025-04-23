@@ -6,6 +6,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MediatorLiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.liveData
 import androidx.lifecycle.viewModelScope
 import com.google.firebase.firestore.ListenerRegistration
 import edu.cs371m.wikirank.DB.DBArticle
@@ -19,8 +20,14 @@ import edu.cs371m.wikirank.api.WikiArticleRepository
 import edu.cs371m.wikirank.api.WikiShortArticle
 import edu.cs371m.wikirank.api.WikiThumbnail
 import edu.cs371m.wikirank.invalidUser
+import edu.cs371m.wikirank.utility.RankedObject
 import edu.cs371m.wikirank.utility.Ranker
 import kotlinx.coroutines.launch
+import androidx.lifecycle.map
+import androidx.lifecycle.switchMap
+import edu.cs371m.wikirank.utility.RatedArticle
+import kotlinx.coroutines.Dispatchers
+
 
 class MainViewModel: ViewModel() {
     private var currentAuthUser = invalidUser
@@ -31,16 +38,15 @@ class MainViewModel: ViewModel() {
     private val wikiApi: WikiApi = WikiApi.create()
     private val wikiApiRepository: WikiArticleRepository = WikiArticleRepository(wikiApi)
 
-    private var leaderboards = MutableLiveData<Map<String, List<String>>>()
+    private var leaderboards = MutableLiveData<Map<String, List<DBArticle>>>()
     private var curCategory = MutableLiveData<String>("cities")
 
     private var articleOneIndex = MutableLiveData<Int>(0)
     private var articleTwoIndex = MutableLiveData<Int>(0)
 
-    init {
-        randomizeDBArticles()
-        getLeaderboards()
-    }
+    private val idToDB = mutableMapOf<String, DBArticle>() // associate firestore id to DB articles (used for matchup -> WikiShortArticle)
+
+
 
     private var articleOneDB = MediatorLiveData<DBArticle>().apply{
         addSource(articleOneIndex) {newInd: Int ->
@@ -63,12 +69,16 @@ class MainViewModel: ViewModel() {
 
     private var categoryList = MediatorLiveData<List<String>>().apply{
         addSource(leaderboards) {newLeaderboard ->
-            this@apply.postValue(newLeaderboard[curCategory.value])
+            val ids = newLeaderboard?.get(curCategory.value)?.map{it.firestoreID} ?: emptyList()
+            postValue(ids)
         }
         addSource(curCategory){ newCategory ->
-            this@apply.postValue(leaderboards.value?.get(newCategory))
+            val ids = leaderboards.value?.get(newCategory)?.map{it.firestoreID} ?: emptyList()
+            postValue(ids)
         }
     }
+
+
 
     fun observeCategoryList(): LiveData<List<String>>{
         return categoryList
@@ -80,12 +90,14 @@ class MainViewModel: ViewModel() {
             leaderboards.postValue(
                 rawLeaderboard.mapValues { dbArticleList ->
                     dbArticleList.value.map{dbArticle ->
-                        dbArticle.name
+                        idToDB[dbArticle.firestoreID] = dbArticle
+                        return@map dbArticle
                     }
                 }
             )
         }
     }
+
 
     private val matchups: MediatorLiveData<List<MatchUp>> = MediatorLiveData<List<MatchUp>>().apply {
         addSource(curCategory){newCategory ->
@@ -107,7 +119,34 @@ class MainViewModel: ViewModel() {
         matchupListener?.remove()
     }
 
+    private var ranker = Ranker(emptyList(), emptyList())
+    private val _rankedObjects = MutableLiveData<List<RankedObject>>()
+    private val rankedObjects: LiveData<List<RankedObject>> = _rankedObjects
 
+    val ratedArticles = MediatorLiveData<List<RatedArticle>>().apply{
+        addSource(rankedObjects) { ros ->
+            // first, associate each title -> short Article
+            viewModelScope.launch {
+                Log.d("ratedArticles", "RankedObjects $ros")
+                val keys = ros.mapNotNull { idToDB[it.id]?.name }
+                val shortMap = wikiApiRepository.getShortArticlesMap(keys)
+                Log.d("ratedArticles", "map $shortMap")
+                val ratedArticles = ros.mapNotNull { ro ->
+                    // Then, associate each rankedObject -> wikiShortArticle through the DBArticle lookup
+                    val db = idToDB[ro.id]
+                    val wiki = shortMap[db?.name]
+                    if (wiki == null) {
+                        Log.d("ratedArticles", "Couldn't find article for ${db?.name}")
+                        return@mapNotNull null
+                    } else {
+                        Log.d("ratedArticles", "Found article for ${db?.name}")
+                    }
+                    RatedArticle(wiki, ro.rating, ro.id)
+                }
+                postValue(ratedArticles)
+            }
+        }
+    }
 
     private var articleOneShort = MediatorLiveData<WikiShortArticle>().apply{
         addSource(articleOneDB) { newArticle: DBArticle ->
@@ -245,6 +284,20 @@ class MainViewModel: ViewModel() {
                 onSuccess(thumbnail)
             }
         }
+    }
 
+
+    init {
+        randomizeDBArticles()
+        getLeaderboards()
+
+        categoryList.observeForever {
+            ranker.resetArticles(it)
+            _rankedObjects.value = ranker.getRankedObjects()
+        }
+        matchups.observeForever {
+            ranker.addMatchups(it)
+            _rankedObjects.value = ranker.getRankedObjects()
+        }
     }
 }

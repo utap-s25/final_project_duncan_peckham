@@ -9,6 +9,7 @@ import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import edu.cs371m.wikirank.R
 import edu.cs371m.wikirank.databinding.LeaderboardFragBinding
+import edu.cs371m.wikirank.utility.RatedArticle
 
 class LeaderboardFragment: Fragment(R.layout.leaderboard_frag) {
     private val viewModel: MainViewModel by activityViewModels()
@@ -18,10 +19,8 @@ class LeaderboardFragment: Fragment(R.layout.leaderboard_frag) {
             val action  =  LeaderboardFragmentDirections.actionLeaderboardFragToArticle(it)
             findNavController().navigate(action)
         }
-        viewModel.observeCategoryList().observe(viewLifecycleOwner){ titleList ->
-            viewModel.getShortArticles(titleList){ articleList ->
-                articleAdapter.submitList(articleList)
-            }
+        viewModel.ratedArticles.observe(viewLifecycleOwner){
+            articleAdapter.submitList(it)
         }
         return articleAdapter
     }
