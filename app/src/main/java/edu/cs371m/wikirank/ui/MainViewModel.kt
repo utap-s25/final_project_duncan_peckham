@@ -113,13 +113,13 @@ class MainViewModel: ViewModel() {
         addSource(articleOneDB) { newArticle: DBArticle ->
             Log.d("articleOneShort", "Repo Short Article Request")
             viewModelScope.launch{
-                this@apply.postValue(wikiApiRepository.getShortArticle(newArticle.name))
+                this@apply.postValue(wikiApiRepository.getShortArticleCached(newArticle.name))
             }
         }
         addSource(refreshTrigger) {
             viewModelScope.launch{
                 if(articleOneDB.value != null){
-                    this@apply.postValue(wikiApiRepository.getShortArticle(articleOneDB.value!!.name))
+                    this@apply.postValue(wikiApiRepository.getShortArticleCached(articleOneDB.value!!.name))
                 }
             }
         }
@@ -128,13 +128,13 @@ class MainViewModel: ViewModel() {
         addSource(articleTwoDB) { newArticle: DBArticle ->
             Log.d("articleTwoShort", "Repo Short Article Request")
             viewModelScope.launch{
-                this@apply.postValue(wikiApiRepository.getShortArticle(newArticle.name))
+                this@apply.postValue(wikiApiRepository.getShortArticleCached(newArticle.name))
             }
         }
         addSource(refreshTrigger) {
             viewModelScope.launch{
                 if(articleTwoDB.value != null){
-                    this@apply.postValue(wikiApiRepository.getShortArticle(articleTwoDB.value!!.name))
+                    this@apply.postValue(wikiApiRepository.getShortArticleCached(articleTwoDB.value!!.name))
                 }
             }
         }
@@ -217,10 +217,7 @@ class MainViewModel: ViewModel() {
 
     fun getShortArticles(titles: List<String>, onSuccess: (List<WikiShortArticle>) -> Unit){
         viewModelScope.launch{
-            val articleList = titles.mapNotNull { title ->
-                wikiApiRepository.getShortArticle(title)
-            }
-            onSuccess(articleList)
+            onSuccess(wikiApiRepository.getShortArticlesCached(titles))
         }
     }
 
@@ -250,6 +247,4 @@ class MainViewModel: ViewModel() {
         }
 
     }
-
-
 }
