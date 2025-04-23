@@ -7,6 +7,7 @@ import androidx.lifecycle.MediatorLiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.google.firebase.firestore.ListenerRegistration
 import edu.cs371m.wikirank.DB.DBArticle
 import edu.cs371m.wikirank.DB.MatchUp
 import edu.cs371m.wikirank.User
@@ -18,6 +19,7 @@ import edu.cs371m.wikirank.api.WikiArticleRepository
 import edu.cs371m.wikirank.api.WikiShortArticle
 import edu.cs371m.wikirank.api.WikiThumbnail
 import edu.cs371m.wikirank.invalidUser
+import edu.cs371m.wikirank.utility.Ranker
 import kotlinx.coroutines.launch
 
 class MainViewModel: ViewModel() {
@@ -29,11 +31,16 @@ class MainViewModel: ViewModel() {
     private val wikiApi: WikiApi = WikiApi.create()
     private val wikiApiRepository: WikiArticleRepository = WikiArticleRepository(wikiApi)
 
-    private var leaderboards = MutableLiveData<Map<String, List<WikiShortArticle>>>()
+    private var leaderboards = MutableLiveData<Map<String, List<String>>>()
     private var curCategory = MutableLiveData<String>("cities")
 
     private var articleOneIndex = MutableLiveData<Int>(0)
     private var articleTwoIndex = MutableLiveData<Int>(0)
+
+    init {
+        randomizeDBArticles()
+        getLeaderboards()
+    }
 
     private var articleOneDB = MediatorLiveData<DBArticle>().apply{
         addSource(articleOneIndex) {newInd: Int ->
@@ -54,9 +61,53 @@ class MainViewModel: ViewModel() {
         }
     }
 
-    init {
-        randomizeDBArticles()
+    private var categoryList = MediatorLiveData<List<String>>().apply{
+        addSource(leaderboards) {newLeaderboard ->
+            this@apply.postValue(newLeaderboard[curCategory.value])
+        }
+        addSource(curCategory){ newCategory ->
+            this@apply.postValue(leaderboards.value?.get(newCategory))
+        }
     }
+
+    fun observeCategoryList(): LiveData<List<String>>{
+        return categoryList
+    }
+
+    fun getLeaderboards(){
+        Log.d(javaClass.simpleName, "getLeaderboards")
+        dbHelp.fetchRawLeaderboard { rawLeaderboard ->
+            leaderboards.postValue(
+                rawLeaderboard.mapValues { dbArticleList ->
+                    dbArticleList.value.map{dbArticle ->
+                        dbArticle.name
+                    }
+                }
+            )
+        }
+    }
+
+    private val matchups: MediatorLiveData<List<MatchUp>> = MediatorLiveData<List<MatchUp>>().apply {
+        addSource(curCategory){newCategory ->
+            startListeningToMatchups(newCategory)
+        }
+    }
+
+    private var matchupListener: ListenerRegistration? = null
+    fun startListeningToMatchups(category: String){
+        matchupListener?.remove()
+
+        matchupListener = dbHelp.listenMatchups(category){ newList ->
+            matchups.postValue(newList)
+        }
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        matchupListener?.remove()
+    }
+
+
 
     private var articleOneShort = MediatorLiveData<WikiShortArticle>().apply{
         addSource(articleOneDB) { newArticle: DBArticle ->
@@ -102,6 +153,7 @@ class MainViewModel: ViewModel() {
         // hit cache
         return wikiApiRepository.getArticle(title)
     }
+
     fun getArticleOne(): WikiShortArticle? {
         return articleOneShort.value
     }
@@ -154,27 +206,37 @@ class MainViewModel: ViewModel() {
         }
     }
 
+
     fun addArticle(category: String, l: List<String>){
         dbHelp.addArticles(category, l)
     }
 
-    fun getMatchups(category: String, onSuccess: (List<MatchUp>) -> Unit): List<MatchUp>{
+    fun getMatchups(category: String, onSuccess: (List<MatchUp>) -> Unit){
         dbHelp.fetchMatchups(category, onSuccess)
     }
 
-    fun getShortArticles(DBArticles: List<DBArticle>, onSuccess: (List<WikiShortArticle>) -> Unit){
-         viewModelScope.launch{
-             val articleList = DBArticles.map{
-                 wikiApiRepository.getShortArticle(it.name)
-             }.filterNotNull()
-             onSuccess(articleList)
-         }
+    fun getShortArticles(titles: List<String>, onSuccess: (List<WikiShortArticle>) -> Unit){
+        viewModelScope.launch{
+            val articleList = titles.mapNotNull { title ->
+                wikiApiRepository.getShortArticle(title)
+            }
+            onSuccess(articleList)
+        }
     }
 
-    fun orderCategory(category: String){
+//    fun getShortArticles(DBArticles: List<DBArticle>, onSuccess: (List<WikiShortArticle>) -> Unit){
+//         viewModelScope.launch{
+//             val articleList = DBArticles.map{
+//                 wikiApiRepository.getShortArticle(it.name)
+//             }.filterNotNull()
+//             onSuccess(articleList)
+//         }
+//    }
+
+    fun orderCategory(category: String, onSuccess: (List<String>) -> Unit){
         fetchCategory(category){articles ->
             getMatchups(category) {matchups ->
-
+                onSuccess( Ranker(articles.map{it.name}, matchups).getList() )
             }
         }
     }

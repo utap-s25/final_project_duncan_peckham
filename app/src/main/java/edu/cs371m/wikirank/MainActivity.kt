@@ -48,6 +48,9 @@ class MainActivity : AppCompatActivity() {
             }
 
         }
+        actionBarBinding?.leaderboardIcon?.setOnClickListener{
+            findNavController(R.id.main_frame).navigate(R.id.leaderboardFragment)
+        }
     }
 
     fun logout(){

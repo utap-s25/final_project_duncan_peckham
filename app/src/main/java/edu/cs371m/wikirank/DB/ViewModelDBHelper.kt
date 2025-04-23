@@ -3,6 +3,7 @@ package edu.cs371m.wikirank.DB
 
 import android.util.Log
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.ListenerRegistration
 import com.google.firebase.firestore.Query
 import edu.cs371m.wikirank.api.WikiShortArticle
 
@@ -60,7 +61,28 @@ class ViewModelDBHelper {
             .orderBy("order_id")
             .limit(1)
         limitAndGet(query, DBArticle::class.java, resultListener)
+    }
+
+
+    // I gave chatGPT the rest of this file and the function signature and had it write this function
+    fun fetchRawLeaderboard(
+        resultListener: (Map<String, List<DBArticle>>) -> Unit
+    ) {
+        Log.d(javaClass.simpleName, "fetchRawLeaderboard")
+        val ref = db.collection("articles")
+
+        // Pull every article once, then group in-memory
+        limitAndGet(ref, DBArticle::class.java) { allArticles ->
+
+            // Group by category and make sure each list is ordered
+            val leaderboard: Map<String, List<DBArticle>> =
+                allArticles
+                    .groupBy { it.category }
+                    .mapValues { (_, list) -> list.sortedBy { it.order_id } }
+            resultListener(leaderboard)
         }
+    }
+
 
     fun fetchMatchups(
         category: String,
@@ -71,6 +93,25 @@ class ViewModelDBHelper {
             .whereEqualTo("category", category)
             .orderBy("timestamp")
         limitAndGet(query, MatchUp::class.java, resultListener)
+    }
+
+    fun listenMatchups(
+        category: String,
+        onChange: (List<MatchUp>) -> Unit
+    ): ListenerRegistration{
+        val query = db.collection("matchups")
+            .whereEqualTo("category", category)
+            .orderBy("timestamp")
+
+        return query.addSnapshotListener{ snap, err ->
+            if (err != null) {
+                Log.d(javaClass.simpleName, "Snapshot failed with error $err")
+                return@addSnapshotListener
+            }
+            val list = snap?.documents?.mapNotNull{it.toObject(MatchUp::class.java)}
+
+            onChange(list ?: emptyList())
+        }
     }
 
     fun addVote(matchUp: MatchUp, onSuccess: () -> Unit){

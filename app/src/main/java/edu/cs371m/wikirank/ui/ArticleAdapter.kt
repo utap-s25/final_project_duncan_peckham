@@ -10,7 +10,9 @@ import edu.cs371m.wikirank.databinding.ArticleRowBinding
 import edu.cs371m.wikirank.glide.Glide
 
 // adapted from PhotoMetaAdapter from the PhotoList FC
-class ArticleAdapter(private val viewModel: MainViewModel): ListAdapter<WikiShortArticle, ArticleAdapter.VH>(Diff()) {
+class ArticleAdapter(private val viewModel: MainViewModel,
+    private val navigateToArticle: (WikiShortArticle) -> Unit
+    ): ListAdapter<WikiShortArticle, ArticleAdapter.VH>(Diff()) {
     class Diff : DiffUtil.ItemCallback<WikiShortArticle>() {
         override fun areItemsTheSame(oldItem: WikiShortArticle, newItem: WikiShortArticle): Boolean {
             return oldItem.title == newItem.title
@@ -32,6 +34,8 @@ class ArticleAdapter(private val viewModel: MainViewModel): ListAdapter<WikiShor
             }
             rowBinding.articleTitle.text = shortArticle?.title
             rowBinding.articleDesc.text = shortArticle?.shortDescription
+
+            rowBinding.articleTitle.setOnClickListener{navigateToArticle(shortArticle)}
         }
     }
 

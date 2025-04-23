@@ -16,7 +16,7 @@ class Ranker(
     }
 
     fun getList(): List<String>{
-
+        return articleList
     }
 
     // todo: ELO Implementation
