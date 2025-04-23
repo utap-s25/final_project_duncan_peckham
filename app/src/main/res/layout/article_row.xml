@@ -25,6 +25,7 @@
             android:textStyle="bold"
             android:textSize="16sp"
             android:maxLines="2"
+            android:text="Boston, MA"
             android:ellipsize="end" />
 
         <TextView
@@ -35,7 +36,16 @@
             android:maxLines="2"
             android:ellipsize="end"
             android:textColor="#777777"
+            android:text="Capital of Massachusetts, USA"
             android:layout_marginTop="4dp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="12sp"
+            android:id="@+id/ratingTV"
+            android:text="Rating: 1500"
+            android:textStyle="italic"/>
     </LinearLayout>
 
     <!-- Right: Thumbnail -->
