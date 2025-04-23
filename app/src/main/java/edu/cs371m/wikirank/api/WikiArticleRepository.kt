@@ -72,22 +72,16 @@ class WikiArticleRepository(private val wikiApi: WikiApi) {
 
     /** Core helper: fetch and return a Map keyed by the *request* strings. */
     suspend fun getShortArticlesMap(keys: List<String>): Map<String, WikiShortArticle> {
-        val (hits, missKeys) = ShortArticleCache.getMany(keys)
-        val result = hits.associateBy { it.title /* placeholder, we'll patch below */ }
-            .toMutableMap()
+        val (hits, missKeys) = ShortArticleCache.getMany(keys)   // hits already keyed by request
+        if (missKeys.isEmpty()) return hits                      // all cached
 
-        // fetch misses concurrently
-        coroutineScope {
-            missKeys.map { k -> async { k to getShortArticle(k) } }
-                .awaitAll()
-                .forEach { (k, art) ->
-                    if (art != null) {
-                        ShortArticleCache.put(k, art)
-                        result[k] = art                 // key = request string
-                    }
-                }
-        }
-        return result
+        val fetched = coroutineScope {
+            missKeys.map { k -> async { k to getShortArticle(k) } }.awaitAll()
+        }.filter { it.second != null } as List<Pair<String, WikiShortArticle>>
+
+        fetched.forEach { (k, art) -> ShortArticleCache.put(k, art) }
+
+        return hits + fetched.toMap()        // still keyed by request strings
     }
 
     /** Thin wrapper for callers that still expect a List. */
@@ -109,5 +103,4 @@ class WikiArticleRepository(private val wikiApi: WikiApi) {
         Log.d("getThumbnail", "$cleaned")
         return cleaned
     }
-
 }

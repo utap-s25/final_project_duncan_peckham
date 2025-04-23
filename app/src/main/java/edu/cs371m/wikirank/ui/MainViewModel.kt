@@ -257,29 +257,46 @@ class MainViewModel: ViewModel() {
     //ChatGPT Created the base code given a prompt containing UserMatchUpDisplay and wanting to filter matchup list to the users id
     val userMatchupRows = MediatorLiveData<List<UserMatchupDisplay>>().apply {
         fun rebuild() {
-            val uid     = _authUser.value?.uid ?: return
-            val votes   = matchups.value ?: return
-
-            /* --- filter + join --------------------------- */
+            val uid   = _authUser.value?.uid ?: return
+            val votes = matchups.value ?: return
             val myVotes = votes.filter { it.userId == uid }
 
-            val needed  = myVotes.flatMap {
-                listOfNotNull(idToDB[it.articleOne]?.name,
-                    idToDB[it.articleTwo]?.name)
+            /* ---------- ensure idToDB has every article ID we need ---------- */
+            val missing = myVotes.flatMap { listOf(it.articleOne, it.articleTwo) }
+                .filter { it !in idToDB }
+            if (missing.isNotEmpty()) {
+                dbHelp.fetchArticlesByIds(missing) { fetched ->
+                    fetched.forEach { idToDB[it.firestoreID] = it }
+                    rebuild()                      // retry once map is full
+                }
+                return
+            }
+
+            /* ---------- fetch Wiki shorts ---------- */
+            val titles  = myVotes.flatMap {
+                listOf(idToDB[it.articleOne]!!.name, idToDB[it.articleTwo]!!.name)
             }.distinct()
 
             viewModelScope.launch(Dispatchers.IO) {
-                val shortMap = wikiApiRepository.getShortArticlesMap(needed)
+                val shortMap = wikiApiRepository.getShortArticlesMap(titles)
 
                 val rows = myVotes.mapNotNull { mu ->
-                    val left  = shortMap[idToDB[mu.articleOne]?.name] ?: return@mapNotNull null
-                    val right = shortMap[idToDB[mu.articleTwo]?.name] ?: return@mapNotNull null
+                    val left  = shortMap[idToDB[mu.articleOne]!!.name]
+                        ?: wikiApiRepository.getShortArticleCached(idToDB[mu.articleOne]!!.name)
+                    val right = shortMap[idToDB[mu.articleTwo]!!.name]
+                        ?: wikiApiRepository.getShortArticleCached(idToDB[mu.articleTwo]!!.name)
+
+                    if (left == null || right == null){
+                        Log.d("userMatchupRows", "Failed in fetching ${idToDB[mu.articleOne]?.name} or ${idToDB[mu.articleTwo]?.name}")
+                        return@mapNotNull null
+                    }
                     val score = if (mu.vote == Vote.ARTICLE_ONE) "1-0" else "0-1"
                     UserMatchupDisplay(left, right, score)
                 }
                 postValue(rows)
             }
         }
+
 
         addSource(matchups) { rebuild() }    // Firestore update
         addSource(_authUser) { rebuild() }   // login / logout

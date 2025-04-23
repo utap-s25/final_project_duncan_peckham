@@ -30,18 +30,11 @@ object ShortArticleCache {
 
     /** Convenience for bulk lookups. */
     @Synchronized
-    fun getMany(keys: List<String>): Pair<List<WikiShortArticle>, List<String>> {
-        val hits   = mutableListOf<WikiShortArticle>()
-        val missTs = mutableListOf<String>()
-        keys.forEach { t ->
-            val hit = cache[t]
-            if (hit != null){
-                Log.d(javaClass.simpleName, "Cache hit in getMany ${hit.title}")
-                hits.add(hit)}
-            else{
-                Log.d(javaClass.simpleName, "Cache miss in getMany $t")
-                missTs.add(t)}
-        }
-        return hits to missTs
+    fun getMany(keys: List<String>): Pair<Map<String, WikiShortArticle>, List<String>> {
+        val hit  = mutableMapOf<String, WikiShortArticle>()
+        val miss = mutableListOf<String>()
+        keys.forEach { k -> if (cache[k] != null) hit[k] = cache[k]!! else miss += k }
+        return hit to miss
     }
+
 }

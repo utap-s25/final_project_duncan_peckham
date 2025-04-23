@@ -82,17 +82,46 @@ class ViewModelDBHelper {
             resultListener(leaderboard)
         }
     }
+    // gave chatGpt description for this function and it wrote it
+    /**
+     * Fetch every article whose **document-id** is contained in [ids] and return them
+     * as `DBArticle` objects — each with its `firestoreID` field filled in.
+     *
+     * Firestore lets `whereIn` match at most 10 values, so we chunk the request.
+     */
+    fun fetchArticlesByIds(
+        ids: List<String>,
+        resultListener: (List<DBArticle>) -> Unit
+    ) {
+        if (ids.isEmpty()) {
+            resultListener(emptyList())
+            return
+        }
 
+        val results      = mutableListOf<DBArticle>()
+        val chunks       = ids.chunked(10)                  // Firestore limit
+        var remaining    = chunks.size                      // how many chunks still running
+        val articlesCol  = db.collection("articles")
 
-    fun fetchMatchups(
-        category: String,
-        resultListener: (List<MatchUp>) -> Unit
-    ){
-        val ref = db.collection("matchups")
-        val query = ref
-            .whereEqualTo("category", category)
-            .orderBy("timestamp")
-        limitAndGet(query, MatchUp::class.java, resultListener)
+        chunks.forEach { chunk ->
+            // Query by document-id
+            articlesCol
+                .whereIn(com.google.firebase.firestore.FieldPath.documentId(), chunk)
+                .get()
+                .addOnSuccessListener { snap ->
+                    snap.documents.forEach { doc ->
+                        doc.toObject(DBArticle::class.java)?.also { art ->
+                            art.firestoreID = doc.id       // keep the id with the object
+                            results += art
+                        }
+                    }
+                    if (--remaining == 0) resultListener(results)
+                }
+                .addOnFailureListener { e ->
+                    Log.e(javaClass.simpleName, "fetchArticlesByIds chunk failed", e)
+                    if (--remaining == 0) resultListener(results)   // return what we have
+                }
+        }
     }
 
     fun listenMatchups(
